@@ -7,6 +7,66 @@ mapping, component design decisions, and ticket templates — lives in Notion:
 
 ---
 
+## Delivery Targets
+
+The frontend codebase builds to two distinct targets from the same source. The target is
+selected at build time via the `VITE_APP_TARGET` environment variable (set in `.env.tauri` and
+`.env.web`).
+
+### Tauri desktop app
+
+Built with `pnpm build` (or `pnpm vite:build` for the frontend alone).
+
+- Local LLM (Ollama) available without signing in
+- Full native file system access via the Tauri fs plugin
+- Sign-in is **optional** — the app opens immediately in guest mode; auth is prompted only when
+  the user accesses a gated feature (remote LLM, team collaboration)
+- Works entirely offline
+
+### Web browser app
+
+Built with `pnpm web:build` and deployed as a static site.
+
+- Remote LLM only — no access to the local Ollama process
+- Sign-in is **required** — `AuthGuard` blocks the app until authenticated
+- File access via the browser File System Access API
+
+### Capability matrix
+
+| Capability            | Desktop (guest) | Desktop (signed in) | Web (signed in) |
+|-----------------------|-----------------|---------------------|-----------------|
+| Local LLM (Ollama)    | ✅              | ✅                  | ❌              |
+| Remote LLM            | ❌              | ✅                  | ✅              |
+| Native file system    | ✅              | ✅                  | ❌              |
+| Browser file access   | ❌              | ❌                  | ✅              |
+| Team collaboration    | ❌              | ✅                  | ✅              |
+| Works offline         | ✅              | ✅                  | ❌              |
+| Auth required         | No              | Completed           | Yes (gate)      |
+
+### Platform abstraction layer
+
+Shared feature code never imports platform-specific APIs directly. It uses:
+
+- **`src/platform/index.ts`** — build-time boolean flags (`IS_TAURI`, `IS_WEB`,
+  `AUTH_REQUIRED`, `LOCAL_LLM_AVAILABLE`). Vite replaces these statically, enabling dead-code
+  elimination of the other target's branches.
+- **`src/services/`** — `LLMService`, `FileService`, `AuthService` interfaces with
+  platform-specific implementations selected via dynamic `import()` factories. Each provider
+  file is only included in the bundle where it is needed.
+- **`src/guards/AuthGuard.tsx`** — passthrough on Tauri; hard login gate on web.
+- **`src/contexts/AuthContext.tsx`** — React context backed by the target's `AuthService`.
+
+### Build commands
+
+| Command | Output | Purpose |
+|---------|--------|---------|
+| `pnpm build` | Tauri binary | Full desktop release |
+| `pnpm dev` | Tauri + hot reload | Desktop development |
+| `pnpm web:build` | `dist/` (static) | Web deployment |
+| `pnpm web:dev` | Vite dev server | Web development |
+
+---
+
 ## Two-Repository Split
 
 The project is intentionally split into two repositories to keep the offline-first desktop app
@@ -14,7 +74,8 @@ decoupled from the optional sync infrastructure.
 
 ### `cafe-autex` (this repository)
 
-The Tauri desktop application. Everything that runs on the user's machine:
+The Tauri desktop app and web browser app. Everything that runs on the user's machine or in
+their browser:
 
 - **React 18 + TypeScript frontend** — UI shell, editor canvas, all panels
 - **ProseMirror editor engine** — schema, node views, plugins, keymaps

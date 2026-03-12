@@ -1,5 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { AuthGuard } from "@/guards/AuthGuard";
 
 // TODO(phase-1): Replace with the full App component once the shell is scaffolded.
 function App() {
@@ -30,6 +32,16 @@ if (!root) throw new Error("Root element #root not found");
 
 ReactDOM.createRoot(root).render(
   <React.StrictMode>
-    <App />
+    {/*
+      Provider hierarchy:
+        AuthProvider  — initialises the auth service for the build target
+          AuthGuard   — on web: blocks until signed in; on Tauri: passthrough
+            App       — editor shell; add LLMProvider / FileProvider here in Phase 1
+    */}
+    <AuthProvider>
+      <AuthGuard>
+        <App />
+      </AuthGuard>
+    </AuthProvider>
   </React.StrictMode>,
 );
