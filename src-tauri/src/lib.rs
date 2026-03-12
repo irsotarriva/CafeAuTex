@@ -10,6 +10,8 @@ pub fn run() {
             commands::file::write_file,
             commands::file::show_in_folder,
             commands::compile::compile_latex,
+            commands::dialog::open_file_dialog,
+            commands::dialog::save_file_dialog,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Café AuTex");
