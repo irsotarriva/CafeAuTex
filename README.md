@@ -30,7 +30,7 @@ Collaboration is built on Yjs CRDT with end-to-end encryption: document content 
 
 **Real-time collaboration with E2E encryption.** Built on Yjs CRDT. Multiple collaborators can edit simultaneously; changes merge without conflict. CRDT operation payloads are encrypted before transmission using a key derived client-side — the sync server handles routing, not content. Operation payloads are padded to fixed-size buckets to reduce traffic analysis exposure.
 
-**AI fill-in-the-middle completion (local model).** Inline completion is powered by a locally-run Qwen2.5-Coder model via Ollama or llama.cpp. Context is assembled by the MCP server from the document tree — surrounding paragraphs, the command namespace, and the acronym table are included automatically. Nothing leaves the device.
+**AI fill-in-the-middle completion (local model).** Inline completion is powered by a locally-run FIM model via Ollama or llama.cpp. Context is assembled by the MCP server from the document tree — surrounding paragraphs, the command namespace, and the acronym table are included automatically. Nothing leaves the device.
 
 **MCP server for external AI tooling.** The document tree is exposed as a Model Context Protocol server. External tools such as Continue (VS Code) can call `get_context`, `search_bib`, `resolve_ref`, and `get_timeline` to query the document as structured data rather than parsing raw `.tex` output.
 
