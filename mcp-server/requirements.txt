@@ -1,0 +1,5 @@
+fastmcp>=2.2.0
+pydantic>=2.10.0
+dexie-python>=0.1.0
+websockets>=14.0
+uvicorn>=0.34.0
